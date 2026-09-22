@@ -970,6 +970,25 @@ A('pne', 'bode', 'Indicele BODE', 'BPOC prognostic mortalitate',
   },
   'Celli și colab., 2004. B = indice de masă corporală (1 punct dacă IMC 21 sau sub). O = obstrucție, din FEV1 procentual (0-3 puncte). D = dispnee mMRC (0-3 puncte, gradele 3 și 4 valorează amândouă 3 puncte). E = capacitate de efort, din testul de mers 6 minute (0-3 puncte). Maximum 10 puncte.');
 
+A('pne', 'gold', 'Clasificarea GOLD în BPOC (grad spirometric și grupa ABE)', 'BPOC GOLD stadializare grup ABE exacerbari tratament',
+  'Gradul spirometric și grupa de risc simptomatic-exacerbări, pentru orientarea tratamentului inițial în bronhopneumopatia obstructivă cronică.',
+  [N('fev1', 'FEV1 procent din valoarea prezisă (post-bronhodilatator)', { u: '%', min: 5, max: 150 }),
+   S('burden', 'Povara simptomelor', [[0, 'mMRC 0-1 sau CAT sub 10'], [1, 'mMRC 2 sau peste, sau CAT 10 sau peste']], { sc: false }),
+   N('exac', 'Numărul de exacerbări moderate sau severe în ultimele 12 luni', { u: '', min: 0, max: 20 }),
+   K('hosp', 'Cel puțin o exacerbare a necesitat spitalizare', 1)],
+  function (v) {
+    var grade = v.fev1 >= 80 ? 1 : (v.fev1 >= 50 ? 2 : (v.fev1 >= 30 ? 3 : 4));
+    var gradeLabel = ['', 'Ușor (GOLD 1)', 'Moderat (GOLD 2)', 'Sever (GOLD 3)', 'Foarte sever (GOLD 4)'][grade];
+    var group = (v.exac >= 1 || v.hosp) ? 'E' : (v.burden === 1 ? 'B' : 'A');
+    var groupTxt = { A: 'Grupa A: bronhodilatator (fără preferință de clasă).', B: 'Grupa B: bronhodilatator dublu, LABA plus LAMA.', E: 'Grupa E: bronhodilatator dublu, LABA plus LAMA; se ia în considerare adăugarea de corticosteroid inhalator dacă eozinofilele sanguine sunt 300/µL sau peste.' }[group];
+    return { out: [
+      { l: 'Grad spirometric', s: gradeLabel },
+      B(O('Grupa GOLD (simptome și exacerbări)', null, '', null, { s: group, big: true })),
+      T('Orientare de tratament inițial', groupTxt, group === 'A' ? 'ok' : (group === 'B' ? 'warn' : 'bad'))
+    ], notes: [['info', 'Gradul spirometric necesită un raport FEV1/FVC post-bronhodilatator sub 0,70 pentru diagnosticul de BPOC; acest calculator presupune diagnosticul deja stabilit. Pragurile grupei E reflectă actualizarea din raportul GOLD 2026 (o singură exacerbare moderată sau severă în ultimul an încadrează direct în grupa E, indiferent de simptome); rapoartele GOLD se actualizează anual și merită verificat dacă a apărut o versiune mai recentă.']] };
+  },
+  'Grad spirometric din FEV1 procentual: 1 (ușor) FEV1 80% sau peste; 2 (moderat) 50-79%; 3 (sever) 30-49%; 4 (foarte sever) sub 30%. Grupa: E dacă a existat cel puțin o exacerbare moderată sau severă în ultimul an (indiferent de simptome); altfel B dacă simptomele sunt importante (mMRC 2 sau peste, ori CAT 10 sau peste); altfel A.');
+
 /* ===== Nefrologie și echilibru hidroelectrolitic ===== */
 cat('nef', 'Nefrologie și echilibru hidroelectrolitic');
 
